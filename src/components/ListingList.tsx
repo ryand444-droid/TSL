@@ -6,8 +6,11 @@ import type { Listing } from "@/lib/db";
 import { CATEGORIES, CATEGORY_LABELS, formatPrice, type Category } from "@/lib/sites";
 import { SearchIcon } from "./icons";
 import { Thumb } from "./Thumb";
+import { VsMarket } from "./VsMarket";
 
-type Item = Pick<Listing, "id" | "title" | "imageUrl" | "price" | "currency" | "priceText" | "site" | "category" | "notes">;
+type Item = Pick<Listing, "id" | "title" | "imageUrl" | "price" | "currency" | "priceText" | "site" | "category" | "notes"> & {
+  vsMarket: number | null;
+};
 
 export function ListingList({ items }: { items: Item[] }) {
   const [category, setCategory] = useState<Category | "all">("all");
@@ -59,6 +62,7 @@ export function ListingList({ items }: { items: Item[] }) {
               <span className={`price${item.price == null && !item.priceText ? " none" : ""}`}>
                 {formatPrice(item.price, item.currency, item.priceText)}
               </span>
+              <VsMarket diff={item.vsMarket} />
             </div>
           </Link>
         ))}

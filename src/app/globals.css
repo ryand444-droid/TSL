@@ -268,3 +268,13 @@ details.edit form { padding-bottom: 16px; }
 .sitelink:hover { border-color: var(--gold); }
 .sitelink b { font: 500 17px var(--display); }
 .sitelink span { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+
+.market { border-top: 1px solid var(--line); padding-top: 16px; }
+.market-figure { font: 500 34px var(--display); font-variant-numeric: lining-nums; color: var(--gold); }
+.market .hint a { color: var(--gold); border-bottom: 1px solid currentColor; }
+.vs { font: 400 10px var(--body); letter-spacing: 0.18em; text-transform: uppercase; }
+.vs.below { color: var(--down); }
+.vs.above { color: var(--up); }
+.vs.even { color: var(--muted); }
+.market .vs { font-size: 13px; }
+.card-body .vs { grid-column: 1 / -1; }

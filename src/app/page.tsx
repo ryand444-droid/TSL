@@ -3,6 +3,7 @@ import { ListingList } from "@/components/ListingList";
 import { PlusIcon, SearchIcon } from "@/components/icons";
 import { DbSetupError } from "@/lib/db";
 import { allListings } from "@/lib/listings";
+import { latestMarketChecks, versusMarket } from "@/lib/market";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function Home() {
     throw err;
   }
   const sites = new Set(items.map((i) => i.site)).size;
+  const markets = await latestMarketChecks();
   return (
     <main className="page wide">
       <div className="topline">
@@ -46,6 +48,7 @@ export default async function Home() {
         <ListingList
           items={items.map(({ id, title, imageUrl, price, currency, priceText, site, category, notes }) => ({
             id, title, imageUrl, price, currency, priceText, site, category, notes,
+            vsMarket: versusMarket(price, markets.get(id)),
           }))}
         />
       )}
