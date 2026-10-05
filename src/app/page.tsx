@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { ListingList } from "@/components/ListingList";
 import { PlusIcon } from "@/components/icons";
+import { DbSetupError } from "@/lib/db";
 import { allListings } from "@/lib/listings";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const items = await allListings();
+  let items;
+  try {
+    items = await allListings();
+  } catch (err) {
+    if (err instanceof DbSetupError) return <DbProblem error={err} />;
+    throw err;
+  }
   const sites = new Set(items.map((i) => i.site)).size;
   return (
     <main className="page">
@@ -36,6 +43,26 @@ export default async function Home() {
           }))}
         />
       )}
+    </main>
+  );
+}
+
+function DbProblem({ error }: { error: DbSetupError }) {
+  return (
+    <main className="page">
+      <div className="topline">
+        <div className="logo">TSL</div>
+      </div>
+      <div className="empty">
+        <b>Can&apos;t reach the database</b>
+        <span>{error.message}</span>
+        {error.target && (
+          <span>
+            The saved link points to: <code>{error.target}</code>
+          </span>
+        )}
+        <span>After changing DATABASE_URL in Vercel, redeploy, then reload this page.</span>
+      </div>
     </main>
   );
 }

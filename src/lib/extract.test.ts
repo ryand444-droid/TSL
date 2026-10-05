@@ -101,3 +101,19 @@ describe("titleFromUrl", () => {
     expect(titleFromUrl(new URL("https://www.chrono24.com.au/rolex/submariner-date--id123.htm"))).toBe("Submariner date");
   });
 });
+
+describe("explainDbError", () => {
+  it("explains common Supabase link mistakes without showing the password", async () => {
+    const { explainDbError } = await import("./db");
+    const good = "postgresql://postgres.abc:s3cretpw@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres";
+    const placeholder = "postgresql://postgres.abc:s3cretpw@aws-%E2%80%A6-ap-northeast-2.pooler.supabase.com:6543/postgres";
+    expect(explainDbError({ code: "ENOTFOUND" }, placeholder).message).toMatch(/placeholder/);
+    expect(explainDbError({ code: "ENOTFOUND", message: "getaddrinfo ENOTFOUND" }, good).message).toMatch(/Transaction pooler/);
+    const auth = explainDbError({ code: "28P01", message: "password authentication failed" }, good);
+    expect(auth.message).toMatch(/rejected the password/);
+    expect(auth.target).toBe("postgres.abc @ aws-0-ap-northeast-2.pooler.supabase.com:6543");
+    expect(explainDbError({ message: "Tenant or user not found" }, good).message).toMatch(/user name/);
+    expect(explainDbError({ message: "boom s3cretpw" }, good).message).not.toContain("s3cretpw");
+    expect(explainDbError(new Error("x"), "not a link").message).toMatch(/isn't a valid link/);
+  });
+});
