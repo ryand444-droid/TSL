@@ -1,15 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, DM_Mono, Figtree } from "next/font/google";
+import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 
-const display = Bricolage_Grotesque({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
-const body = Figtree({ variable: "--font-body", subsets: ["latin"] });
-const mono = DM_Mono({ variable: "--font-mono", subsets: ["latin"], weight: ["400", "500"] });
+const display = Cormorant_Garamond({ variable: "--font-display", subsets: ["latin"], weight: ["500", "600"] });
+const body = Jost({ variable: "--font-body", subsets: ["latin"], weight: ["300", "400", "500"] });
 
 export const metadata: Metadata = {
   title: { default: "TSL", template: "%s · TSL" },
   description: "Watches, cars and property saved from any site, in one list.",
-  appleWebApp: { capable: true, title: "TSL", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "TSL", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false },
 };
 
@@ -17,15 +16,12 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfcfa" },
-    { media: "(prefers-color-scheme: dark)", color: "#18201d" },
-  ],
+  themeColor: "#0e0e0f",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-AU" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en-AU" className={`${display.variable} ${body.variable}`}>
       <body>{children}</body>
     </html>
   );

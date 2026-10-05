@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Watches, cars and property saved from any site, in one list.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fbfcfa",
-    theme_color: "#1f6f55",
+    background_color: "#0e0e0f",
+    theme_color: "#0e0e0f",
     icons: [
       { src: "/icon", sizes: "512x512", type: "image/png" },
       { src: "/apple-icon", sizes: "180x180", type: "image/png" },

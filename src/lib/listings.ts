@@ -4,15 +4,23 @@ import { extractListing, type ExtractedListing } from "./extract";
 import { assertPublicUrl, fetchPage, FetchPageError } from "./fetch-page";
 import { guessCategory, siteName, type Category } from "./sites";
 
+/** Drops a repeated ending, e.g. "8/10 Hector St, Wollongong NSW 2500, NSW 2500" from Domain. */
+export function tidyTitle(title: string): string {
+  const parts = title.split(/\s*,\s*/);
+  while (parts.length > 1 && parts[parts.length - 2].toLowerCase().endsWith(parts[parts.length - 1].toLowerCase())) parts.pop();
+  return parts.join(", ");
+}
+
 export async function allListings(): Promise<Listing[]> {
   const db = await getDb();
-  return db.select().from(listings).orderBy(desc(listings.createdAt));
+  const rows = await db.select().from(listings).orderBy(desc(listings.createdAt));
+  return rows.map((row) => ({ ...row, title: tidyTitle(row.title) }));
 }
 
 export async function getListing(id: number): Promise<Listing | undefined> {
   const db = await getDb();
   const [row] = await db.select().from(listings).where(eq(listings.id, id));
-  return row;
+  return row && { ...row, title: tidyTitle(row.title) };
 }
 
 /** Pulls a link out of shared text, e.g. "Check this out https://..." from the iOS share sheet. */
@@ -64,7 +72,7 @@ export async function saveListing(
   }
 
   const host = new URL(finalUrl).hostname;
-  const title = extracted?.title ?? titleFromUrl(url);
+  const title = tidyTitle(extracted?.title ?? titleFromUrl(url));
   const [row] = await db
     .insert(listings)
     .values({
@@ -104,7 +112,7 @@ async function refreshFromCapture(before: Listing, captured: ExtractedListing): 
     .set({
       imageUrl: captured.imageUrl ?? before.imageUrl,
       // A title from the page beats one guessed from the link after a blocked fetch.
-      title: before.fetchError && captured.title ? captured.title : before.title,
+      title: before.fetchError && captured.title ? tidyTitle(captured.title) : before.title,
       ...(priceChanged
         ? { price: captured.price, priceText: captured.priceText, currency: captured.currency ?? (captured.price != null ? "AUD" : null) }
         : {}),

@@ -49,21 +49,21 @@ export function ListingList({ items }: { items: Item[] }) {
           </button>
         ))}
       </div>
-      <div className="list">
+      <div className="gallery">
         {shown.map((item) => (
-          <Link key={item.id} href={`/listing/${item.id}`} className="row">
+          <Link key={item.id} href={`/listing/${item.id}`} className="card">
             <Thumb imageUrl={item.imageUrl} category={item.category} />
-            <div className="meta">
+            <div className="card-body">
+              <span className="src">{item.site}</span>
               <b>{item.title}</b>
-              <span>{item.site}</span>
-            </div>
-            <div className={`price${item.price == null && !item.priceText ? " none" : ""}`}>
-              {formatPrice(item.price, item.currency, item.priceText)}
+              <span className={`price${item.price == null && !item.priceText ? " none" : ""}`}>
+                {formatPrice(item.price, item.currency, item.priceText)}
+              </span>
             </div>
           </Link>
         ))}
-        {shown.length === 0 && <p className="hint" style={{ padding: "24px 0", textAlign: "center" }}>Nothing matches that search.</p>}
       </div>
+      {shown.length === 0 && <p className="hint" style={{ padding: "24px 0", textAlign: "center" }}>Nothing matches that search.</p>}
     </>
   );
 }

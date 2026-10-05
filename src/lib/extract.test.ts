@@ -136,3 +136,11 @@ describe("searchLinks", () => {
     expect(searchLinks("  ", "cars")).toEqual([]);
   });
 });
+
+describe("tidyTitle", () => {
+  it("drops a repeated ending", async () => {
+    const { tidyTitle } = await import("./listings");
+    expect(tidyTitle("8/10 Hector Street, Wollongong NSW 2500, NSW 2500")).toBe("8/10 Hector Street, Wollongong NSW 2500");
+    expect(tidyTitle("Rolex Datejust 36, Blue Dial")).toBe("Rolex Datejust 36, Blue Dial");
+  });
+});
