@@ -62,15 +62,79 @@ type Db = PostgresJsDatabase;
 
 const globalForDb = globalThis as unknown as { tslDb?: Promise<Db> };
 
+/** The hosted database link. POSTGRES_URL is the name Supabase's Vercel integration uses. */
+export function databaseUrl(): string | null {
+  const raw = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
+  return raw.replace(/^["']|["']$/g, "") || null;
+}
+
+/** A database connection problem, explained in plain words so it can be shown on the page. */
+export class DbSetupError extends Error {
+  constructor(
+    message: string,
+    readonly target: string | null,
+  ) {
+    super(message);
+  }
+}
+
+/** Where the link points (user, address, port), without the password. */
+function describeTarget(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return `${decodeURIComponent(u.username) || "(no user)"} @ ${u.hostname}:${u.port || "5432"}`;
+  } catch {
+    return null;
+  }
+}
+
+export function explainDbError(err: unknown, url: string): DbSetupError {
+  const e = err as { code?: string; message?: string };
+  const msg = e?.message ?? String(err);
+  const target = describeTarget(url);
+  let text: string;
+  if (!target) {
+    text =
+      "The saved DATABASE_URL isn't a valid link. If the password has symbols such as @ # / ? or %, reset it in Supabase to letters and numbers only and paste the link again.";
+  } else if (url.includes("…") || /%E2%80%A6/i.test(url) || url.includes("[") || url.includes("]")) {
+    text =
+      "The saved DATABASE_URL still has placeholder text in it (\"…\" or square brackets). Copy the Transaction pooler link from Supabase's Connect button and put only your password where [YOUR-PASSWORD] was.";
+  } else if (e?.code === "ENOTFOUND" || /getaddrinfo/.test(msg)) {
+    text =
+      "The database address couldn't be found. Use the Transaction pooler link from Supabase's Connect button (it ends in :6543/postgres), not the Direct connection one.";
+  } else if (e?.code === "28P01" || /password authentication failed/i.test(msg)) {
+    text =
+      "Supabase rejected the password. Reset the database password in Supabase (letters and numbers only) and put the new one in the link.";
+  } else if (/tenant or user not found/i.test(msg)) {
+    text =
+      "Supabase doesn't recognise the user name. In the Transaction pooler link the user looks like postgres.yourprojectid, not just postgres.";
+  } else if (["ECONNREFUSED", "ETIMEDOUT", "ENETUNREACH", "CONNECT_TIMEOUT"].includes(e?.code ?? "")) {
+    text = "The database didn't answer. Check the link is the Transaction pooler one, on port 6543.";
+  } else {
+    text = `The database connection failed: ${msg}`;
+  }
+  // Never show the password, even if a driver message happens to include the link.
+  try {
+    const password = new URL(url).password;
+    if (password) text = text.split(password).join("****");
+  } catch {}
+  return new DbSetupError(text, target);
+}
+
 async function connect(): Promise<Db> {
-  const url = process.env.DATABASE_URL;
+  const url = databaseUrl();
   if (url) {
     // Hosted Postgres, e.g. Supabase. prepare:false keeps it working behind Supabase's pooler.
     const { default: postgres } = await import("postgres");
     const { drizzle } = await import("drizzle-orm/postgres-js");
-    const client = postgres(url, { prepare: false });
-    await client.unsafe(SCHEMA);
-    return drizzle(client);
+    try {
+      const client = postgres(url, { prepare: false, connect_timeout: 10 });
+      await client.unsafe(SCHEMA);
+      return drizzle(client);
+    } catch (err) {
+      console.error(err);
+      throw explainDbError(err, url);
+    }
   }
   // No DATABASE_URL: an embedded Postgres stored in .data/, for running locally with no accounts.
   const { PGlite } = await import("@electric-sql/pglite");
