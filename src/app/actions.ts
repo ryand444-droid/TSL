@@ -5,14 +5,14 @@ import { redirect } from "next/navigation";
 import { FetchPageError } from "@/lib/fetch-page";
 import { deleteListing, findUrl, saveListing, updateListing } from "@/lib/listings";
 import { isCategory } from "@/lib/sites";
-import { parsePrice } from "@/lib/extract";
+import { parsePrice, type ExtractedListing } from "@/lib/extract";
 
 export async function addListing(_prev: string | null, form: FormData): Promise<string | null> {
   const url = findUrl(String(form.get("url") ?? ""));
   if (!url) return "Paste a link that starts with http:// or https://.";
   let id: number;
   try {
-    ({ id } = await saveListing(url));
+    ({ id } = await saveListing(url, capturedFrom(form)));
   } catch (err) {
     if (err instanceof FetchPageError) return err.message;
     console.error(err);
@@ -20,6 +20,24 @@ export async function addListing(_prev: string | null, form: FormData): Promise<
   }
   revalidatePath("/");
   redirect(`/listing/${id}`);
+}
+
+/** Details the "Save to TSL" bookmark or Shortcut read from the page, if it was used. */
+function capturedFrom(form: FormData): ExtractedListing | null {
+  const get = (k: string) => String(form.get(`captured_${k}`) ?? "").trim();
+  const title = get("title");
+  const image = get("image");
+  const priceInput = get("price");
+  if (!title && !image && !priceInput) return null;
+  const price = parsePrice(priceInput);
+  return {
+    title: title || null,
+    imageUrl: /^https?:\/\//i.test(image) ? image : null,
+    price,
+    currency: price != null ? get("currency").toUpperCase() || null : null,
+    priceText: price == null && priceInput ? priceInput : null,
+    siteName: null,
+  };
 }
 
 export async function editListing(id: number, form: FormData) {

@@ -15,6 +15,10 @@ describe("parsePrice", () => {
   it("returns null when there's no number", () => {
     expect(parsePrice("Auction")).toBeNull();
     expect(parsePrice("Contact agent")).toBeNull();
+    expect(parsePrice("Auction 18 Oct")).toBeNull();
+    expect(parsePrice("Offers over $1.2m")).toBe(1_200_000);
+    expect(parsePrice("AUD 17,450")).toBe(17450);
+    expect(parsePrice("Oct 18")).toBeNull();
     expect(parsePrice(undefined)).toBeNull();
   });
 });

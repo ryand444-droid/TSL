@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb, listings, priceHistory, type Listing } from "./db";
-import { extractListing } from "./extract";
+import { extractListing, type ExtractedListing } from "./extract";
 import { assertPublicUrl, fetchPage, FetchPageError } from "./fetch-page";
 import { guessCategory, siteName, type Category } from "./sites";
 
@@ -32,26 +32,35 @@ export function titleFromUrl(url: URL): string {
 }
 
 /**
- * Saves a listing by link. If the site blocks us the item is still saved, titled from its link,
- * and the error is kept so the page can ask for the details to be filled in by hand.
+ * Saves a listing by link. `captured` is what the "Save to TSL" bookmark or Shortcut read in the person's
+ * own browser; without it the page is fetched here. If the site blocks that, the item is still saved,
+ * titled from its link, and the error is kept so the page can ask for the details to be filled in by hand.
  */
-export async function saveListing(rawUrl: string): Promise<{ id: number; existing: boolean }> {
+export async function saveListing(
+  rawUrl: string,
+  captured: ExtractedListing | null = null,
+): Promise<{ id: number; existing: boolean }> {
   const url = await assertPublicUrl(rawUrl.trim());
   url.hash = "";
   const db = await getDb();
 
-  const [existing] = await db.select({ id: listings.id }).from(listings).where(eq(listings.url, url.toString()));
-  if (existing) return { id: existing.id, existing: true };
+  const [existing] = await db.select().from(listings).where(eq(listings.url, url.toString()));
+  if (existing) {
+    if (captured) await refreshFromCapture(existing, captured);
+    return { id: existing.id, existing: true };
+  }
 
-  let extracted = null;
+  let extracted = captured;
   let fetchError: string | null = null;
   let finalUrl = url.toString();
-  try {
-    const page = await fetchPage(url.toString());
-    finalUrl = page.finalUrl;
-    extracted = extractListing(page.html, page.finalUrl);
-  } catch (err) {
-    fetchError = err instanceof FetchPageError ? err.message : "The site couldn't be reached.";
+  if (!extracted) {
+    try {
+      const page = await fetchPage(url.toString());
+      finalUrl = page.finalUrl;
+      extracted = extractListing(page.html, page.finalUrl);
+    } catch (err) {
+      fetchError = err instanceof FetchPageError ? err.message : "The site couldn't be reached.";
+    }
   }
 
   const host = new URL(finalUrl).hostname;
@@ -82,6 +91,30 @@ export async function saveListing(rawUrl: string): Promise<{ id: number; existin
     await db.insert(priceHistory).values({ listingId: row.id, price: extracted.price, priceText: extracted.priceText });
   }
   return { id: row.id, existing: false };
+}
+
+/** Saving a listing again with the bookmark fills in its photo and records a new price. */
+async function refreshFromCapture(before: Listing, captured: ExtractedListing): Promise<void> {
+  const db = await getDb();
+  const priceChanged =
+    (captured.price != null || captured.priceText != null) &&
+    (captured.price !== before.price || captured.priceText !== before.priceText);
+  await db
+    .update(listings)
+    .set({
+      imageUrl: captured.imageUrl ?? before.imageUrl,
+      // A title from the page beats one guessed from the link after a blocked fetch.
+      title: before.fetchError && captured.title ? captured.title : before.title,
+      ...(priceChanged
+        ? { price: captured.price, priceText: captured.priceText, currency: captured.currency ?? (captured.price != null ? "AUD" : null) }
+        : {}),
+      fetchError: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(listings.id, before.id));
+  if (priceChanged) {
+    await db.insert(priceHistory).values({ listingId: before.id, price: captured.price, priceText: captured.priceText });
+  }
 }
 
 export async function updateListing(
