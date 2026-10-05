@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { BackIcon } from "@/components/icons";
-import { findUrl } from "@/lib/listings";
+import { allListings, findUrl } from "@/lib/listings";
+import { marketStats } from "@/lib/market";
+import { MarketPanel } from "./MarketPanel";
 import { AddForm, type Captured } from "./AddForm";
 
 export const metadata = { title: "Add a listing" };
@@ -25,6 +27,11 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
           currency: param(params.currency).slice(0, 3),
         }
       : null;
+  // On a search results page the Save to TSL button also sends every price it found.
+  const prices = param(params.prices).slice(0, 4000);
+  const stats = url && prices ? marketStats(prices.split("|")) : null;
+  const items = stats ? await allListings() : [];
+
   return (
     <main className="page">
       <div className="topline">
@@ -32,8 +39,21 @@ export default async function AddPage({ searchParams }: PageProps<"/add">) {
           <BackIcon />
         </Link>
       </div>
-      <h1 className="dtitle">Add a listing</h1>
-      <AddForm initialUrl={url} captured={captured} />
+      {stats ? (
+        <>
+          <h1 className="dtitle">Compare with the market</h1>
+          <MarketPanel stats={stats} pageUrl={url} pageTitle={param(params.title)} prices={prices} items={items} />
+          <details className="edit">
+            <summary>Or save this page as a listing</summary>
+            <AddForm initialUrl={url} captured={captured} />
+          </details>
+        </>
+      ) : (
+        <>
+          <h1 className="dtitle">Add a listing</h1>
+          <AddForm initialUrl={url} captured={captured} />
+        </>
+      )}
       {!captured && (
         <p className="hint">
           Photos and prices missing? <Link href="/save">Set up the Save to TSL button</Link> so they come straight from your browser.

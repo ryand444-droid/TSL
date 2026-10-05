@@ -37,7 +37,23 @@ export const savedSearches = pgTable("saved_searches", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Prices read from a like-for-like search results page, compared with one saved listing.
+export const marketChecks = pgTable("market_checks", {
+  id: serial("id").primaryKey(),
+  listingId: integer("listing_id")
+    .notNull()
+    .references(() => listings.id, { onDelete: "cascade" }),
+  sourceUrl: text("source_url").notNull(),
+  label: text("label").notNull(),
+  count: integer("count").notNull(),
+  median: numeric("median", { mode: "number" }).notNull(),
+  low: numeric("low", { mode: "number" }).notNull(),
+  high: numeric("high", { mode: "number" }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Listing = typeof listings.$inferSelect;
+export type MarketCheck = typeof marketChecks.$inferSelect;
 export type SavedSearch = typeof savedSearches.$inferSelect;
 
 const SCHEMA = `
@@ -65,6 +81,18 @@ const SCHEMA = `
     seen_at timestamptz not null default now()
   );
   create index if not exists price_history_listing on price_history (listing_id, seen_at);
+  create table if not exists market_checks (
+    id serial primary key,
+    listing_id integer not null references listings(id) on delete cascade,
+    source_url text not null,
+    label text not null,
+    count integer not null,
+    median numeric not null,
+    low numeric not null,
+    high numeric not null,
+    created_at timestamptz not null default now()
+  );
+  create index if not exists market_checks_listing on market_checks (listing_id, created_at);
   create table if not exists saved_searches (
     id serial primary key,
     query text not null,

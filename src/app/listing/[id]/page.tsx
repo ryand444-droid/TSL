@@ -2,8 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BackIcon } from "@/components/icons";
 import { Thumb } from "@/components/Thumb";
+import { VsMarket } from "@/components/VsMarket";
 import { getListing } from "@/lib/listings";
-import { CATEGORIES, CATEGORY_LABELS, formatPrice } from "@/lib/sites";
+import { latestMarketCheck, versusMarket } from "@/lib/market";
+import { searchLinks } from "@/lib/search-links";
+import { CATEGORIES, CATEGORY_LABELS, formatPrice, isCategory, siteName } from "@/lib/sites";
 import { editListing, removeListing } from "../../actions";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +18,9 @@ export default async function ListingPage({ params }: PageProps<"/listing/[id]">
   if (!item) notFound();
 
   const hasPrice = item.price != null || item.priceText;
+  const market = await latestMarketCheck(item.id);
+  const links = searchLinks(item.title, isCategory(item.category) ? item.category : "other");
+  const searchHere = links.find((l) => l.name === item.site) ?? links[0];
   const saved = item.createdAt.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 
   return (
@@ -34,6 +40,37 @@ export default async function ListingPage({ params }: PageProps<"/listing/[id]">
       <div className={`bigprice${hasPrice ? "" : " none"}`}>
         {hasPrice ? formatPrice(item.price, item.currency, item.priceText) : "No price found"}
       </div>
+      <section className="market stack">
+        <span className="src">Market</span>
+        {market ? (
+          <>
+            <VsMarket diff={versusMarket(item.price, market)} />
+            <p className="hint">
+              Typical asking price {formatPrice(market.median, "AUD")} from {market.count} listings on{" "}
+              {siteName(new URL(market.sourceUrl).hostname)}, ranging {formatPrice(market.low, "AUD")} to {formatPrice(market.high, "AUD")}.
+              Checked {market.createdAt.toLocaleDateString("en-AU", { day: "numeric", month: "short" })}.
+            </p>
+            <p className="hint">
+              <a href={market.sourceUrl} target="_blank" rel="noopener noreferrer">
+                Open that search
+              </a>{" "}
+              and press Save to TSL to update it.
+            </p>
+          </>
+        ) : (
+          <p className="hint">
+            See how this compares: search like-for-like (same model, size and colour), then press Save to TSL on the results page.
+            {searchHere && (
+              <>
+                {" "}
+                <a href={searchHere.url} target="_blank" rel="noopener noreferrer">
+                  Search {searchHere.name}
+                </a>
+              </>
+            )}
+          </p>
+        )}
+      </section>
       {item.notes && <p style={{ margin: 0 }}>{item.notes}</p>}
       {item.fetchError && (
         <div className="notice">

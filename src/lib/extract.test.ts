@@ -144,3 +144,15 @@ describe("tidyTitle", () => {
     expect(tidyTitle("Rolex Datejust 36, Blue Dial")).toBe("Rolex Datejust 36, Blue Dial");
   });
 });
+
+describe("marketStats", () => {
+  it("finds the typical price and ignores outliers", async () => {
+    const { marketStats, versusMarket } = await import("./market");
+    const stats = marketStats(["$14,900", "A$15,500", "$16,000", "$16,200", "$17,450", "$350", "$2,500,000", "Auction"]);
+    expect(stats).toEqual({ count: 5, median: 16000, low: 14900, high: 17450 });
+    expect(marketStats(["$1", "$2", "$3"])).toBeNull();
+    expect(versusMarket(14400, { median: 16000 })).toBeCloseTo(-0.1);
+    expect(versusMarket(null, { median: 16000 })).toBeNull();
+    expect(versusMarket(14400, undefined)).toBeNull();
+  });
+});

@@ -6,6 +6,7 @@ import { FetchPageError } from "@/lib/fetch-page";
 import { deleteListing, findUrl, saveListing, updateListing } from "@/lib/listings";
 import { isCategory } from "@/lib/sites";
 import { addSearch, deleteSearch } from "@/lib/searches";
+import { marketStats, saveMarketCheck } from "@/lib/market";
 import { parsePrice, type ExtractedListing } from "@/lib/extract";
 
 export async function addListing(_prev: string | null, form: FormData): Promise<string | null> {
@@ -92,4 +93,16 @@ export async function saveResult(form: FormData) {
   });
   revalidatePath("/");
   revalidatePath("/find");
+}
+
+/** Stores the prices from a like-for-like search page against one saved listing. */
+export async function addMarketCheck(form: FormData) {
+  const listingId = Number(form.get("listingId"));
+  const url = String(form.get("url") ?? "");
+  const stats = marketStats(String(form.get("prices") ?? "").slice(0, 4000).split("|"));
+  if (!Number.isInteger(listingId) || !stats || !/^https?:\/\//i.test(url)) return;
+  const label = String(form.get("label") ?? "").trim().slice(0, 160) || new URL(url).hostname;
+  await saveMarketCheck(listingId, url, label, stats);
+  revalidatePath("/");
+  redirect(`/listing/${listingId}`);
 }
