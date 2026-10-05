@@ -19,6 +19,7 @@ Open http://localhost:3000. With no settings, data is kept in an embedded databa
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string, e.g. from Supabase (Project settings → Database → connection string, "Transaction pooler"). Needed when hosted, since the embedded database can't run on Vercel. |
 | `APP_PASSCODE` | The passcode needed to open the app. Leave unset only for local use. |
+| `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | Optional. Production keys from a free eBay developer account; turns on eBay results on the Find page. |
 
 ## Put it online (Vercel + Supabase)
 

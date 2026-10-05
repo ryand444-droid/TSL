@@ -29,7 +29,16 @@ export const priceHistory = pgTable("price_history", {
   seenAt: timestamp("seen_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Searches kept on the Find page so they can be run again with one tap.
+export const savedSearches = pgTable("saved_searches", {
+  id: serial("id").primaryKey(),
+  query: text("query").notNull(),
+  category: text("category").notNull().default("other"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Listing = typeof listings.$inferSelect;
+export type SavedSearch = typeof savedSearches.$inferSelect;
 
 const SCHEMA = `
   create table if not exists listings (
@@ -56,6 +65,12 @@ const SCHEMA = `
     seen_at timestamptz not null default now()
   );
   create index if not exists price_history_listing on price_history (listing_id, seen_at);
+  create table if not exists saved_searches (
+    id serial primary key,
+    query text not null,
+    category text not null default 'other',
+    created_at timestamptz not null default now()
+  );
 `;
 
 type Db = PostgresJsDatabase;
