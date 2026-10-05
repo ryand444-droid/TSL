@@ -43,6 +43,9 @@ export default async function Home() {
           }))}
         />
       )}
+      <p className="hint" style={{ textAlign: "center" }}>
+        Missing photos or prices? <Link href="/save">Set up the Save to TSL button</Link>.
+      </p>
     </main>
   );
 }

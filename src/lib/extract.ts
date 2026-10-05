@@ -35,7 +35,12 @@ function clean(text: string | null | undefined): string | null {
 export function parsePrice(value: unknown): number | null {
   if (typeof value === "number") return Number.isFinite(value) && value > 0 ? value : null;
   if (typeof value !== "string") return null;
-  const match = value.replace(/,/g, "").match(/(\d+(?:\.\d+)?)\s*(k|m)?\b/i);
+  const text = value.replace(/,/g, "");
+  // A number after a $ ("Offers over $1.2m"), or text that is only a number ("17450", "AUD 17450"),
+  // so dates and the like in "Auction 18 Oct" aren't read as prices.
+  const match =
+    text.match(/\$\s*(\d+(?:\.\d+)?)\s*(k|m)?\b/i) ??
+    text.match(/^\s*(?:(?:aud|usd|nzd|eur|gbp|chf|hkd|sgd)\s*)?(\d+(?:\.\d+)?)\s*(k|m)?\+?\s*(?:aud|usd|nzd|eur|gbp|chf|hkd|sgd)?\s*$/i);
   if (!match) return null;
   let amount = parseFloat(match[1]);
   const unit = match[2]?.toLowerCase();
