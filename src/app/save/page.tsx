@@ -10,7 +10,10 @@ export default async function SaveSetupPage() {
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  const origin = `${proto}://${host}`;
+  // On Vercel, point the button at the main address (e.g. tsl-nu.vercel.app) rather than whichever
+  // one-off deployment address this page was opened on, so it keeps getting updates.
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const origin = production ? `https://${production}` : `${proto}://${host}`;
   // React won't render javascript: links, so the bookmark is written as plain HTML.
   const bookmarkHtml = `<a class="btn ghost" href="javascript:${encodeURIComponent(bookmarklet(origin).slice("javascript:".length))}">＋ Save to TSL</a>`;
 

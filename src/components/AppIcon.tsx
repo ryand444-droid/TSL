@@ -8,11 +8,12 @@ export function AppIcon({ size }: { size: number }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#1f6f55",
-        color: "#fbfcfa",
-        fontSize: size * 0.36,
-        fontWeight: 700,
-        letterSpacing: -size * 0.015,
+        background: "#0e0e0f",
+        color: "#c9a96a",
+        fontSize: size * 0.3,
+        fontWeight: 400,
+        letterSpacing: size * 0.04,
+        border: `${Math.max(2, size * 0.012)}px solid #c9a96a`,
       }}
     >
       TSL

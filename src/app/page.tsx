@@ -16,7 +16,7 @@ export default async function Home() {
   }
   const sites = new Set(items.map((i) => i.site)).size;
   return (
-    <main className="page">
+    <main className="page wide">
       <div className="topline">
         <div className="logo">
           TSL
@@ -33,6 +33,7 @@ export default async function Home() {
           </Link>
         </div>
       </div>
+      <hr className="rule" />
       {items.length === 0 ? (
         <div className="empty">
           <b>Nothing saved yet</b>
