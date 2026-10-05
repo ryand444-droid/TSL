@@ -2,7 +2,7 @@ export const SESSION_COOKIE = "tsl_session";
 
 /** The app is locked with one shared passcode (APP_PASSCODE). With none set, it is open, for local use. */
 export function passcode(): string | null {
-  return process.env.APP_PASSCODE || null;
+  return process.env.APP_PASSCODE?.trim() || null;
 }
 
 export async function sessionToken(code: string): Promise<string> {
