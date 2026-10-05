@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { FetchPageError } from "@/lib/fetch-page";
 import { deleteListing, findUrl, saveListing, updateListing } from "@/lib/listings";
 import { isCategory } from "@/lib/sites";
+import { addSearch, deleteSearch } from "@/lib/searches";
 import { parsePrice, type ExtractedListing } from "@/lib/extract";
 
 export async function addListing(_prev: string | null, form: FormData): Promise<string | null> {
@@ -62,4 +63,33 @@ export async function removeListing(id: number) {
   await deleteListing(id);
   revalidatePath("/");
   redirect("/");
+}
+
+export async function saveSearch(form: FormData) {
+  const query = String(form.get("q") ?? "").trim().slice(0, 120);
+  const category = form.get("c");
+  if (query) await addSearch(query, isCategory(category) ? category : "other");
+  revalidatePath("/find");
+}
+
+export async function removeSearch(id: number) {
+  await deleteSearch(id);
+  revalidatePath("/find");
+}
+
+/** Saves a search result straight into the list, using the details the search already returned. */
+export async function saveResult(form: FormData) {
+  const url = String(form.get("url") ?? "");
+  const price = Number(form.get("price"));
+  const image = String(form.get("image") ?? "");
+  await saveListing(url, {
+    title: String(form.get("title") ?? "").trim() || null,
+    imageUrl: /^https?:\/\//i.test(image) ? image : null,
+    price: Number.isFinite(price) && price > 0 ? price : null,
+    currency: String(form.get("currency") ?? "").toUpperCase() || null,
+    priceText: null,
+    siteName: null,
+  });
+  revalidatePath("/");
+  revalidatePath("/find");
 }

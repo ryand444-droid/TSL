@@ -237,3 +237,18 @@ details.edit form { padding-bottom: 14px; }
   padding: 10px;
   resize: none;
 }
+
+.chips.wrap { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+.chip.saved { display: inline-flex; align-items: center; gap: 6px; padding-right: 6px; }
+.chip.saved button { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 4px; cursor: pointer; }
+.sitelinks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sitelink {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 14px;
+}
+.sitelink span { font-size: 11px; color: var(--muted); }

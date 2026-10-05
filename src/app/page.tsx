@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ListingList } from "@/components/ListingList";
-import { PlusIcon } from "@/components/icons";
+import { PlusIcon, SearchIcon } from "@/components/icons";
 import { DbSetupError } from "@/lib/db";
 import { allListings } from "@/lib/listings";
 
@@ -24,9 +24,14 @@ export default async function Home() {
             {items.length} saved · {sites} {sites === 1 ? "site" : "sites"}
           </small>
         </div>
-        <Link href="/add" className="iconbtn" aria-label="Add a listing">
-          <PlusIcon />
-        </Link>
+        <div style={{ display: "flex", gap: 8 }}>
+          <Link href="/find" className="iconbtn plain" aria-label="Find listings">
+            <SearchIcon />
+          </Link>
+          <Link href="/add" className="iconbtn" aria-label="Add a listing">
+            <PlusIcon />
+          </Link>
+        </div>
       </div>
       {items.length === 0 ? (
         <div className="empty">

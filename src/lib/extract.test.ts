@@ -121,3 +121,18 @@ describe("explainDbError", () => {
     expect(explainDbError(new Error("x"), "not a link").message).toMatch(/isn't a valid link/);
   });
 });
+
+describe("searchLinks", () => {
+  it("links straight to site search where it can, and through Google elsewhere", async () => {
+    const { searchLinks } = await import("./search-links");
+    const watches = searchLinks("rolex submariner", "watches");
+    expect(watches[0]).toEqual({ name: "Chrono24", url: "https://www.chrono24.com.au/search/index.htm?query=rolex+submariner" });
+    const cars = searchLinks("lamborghini urus", "cars");
+    expect(cars[0]).toEqual({
+      name: "carsales",
+      url: "https://www.google.com.au/search?q=site%3Acarsales.com.au+lamborghini+urus",
+      viaGoogle: true,
+    });
+    expect(searchLinks("  ", "cars")).toEqual([]);
+  });
+});
