@@ -40,9 +40,9 @@ function withOrigin(origin: string) {
   return READ_PAGE.replace("ORIGIN", JSON.stringify(origin)).replace(/\n\s*/g, "");
 }
 
-/** A bookmark that opens the listing in TSL in a new tab. */
+/** A bookmark that opens the listing in TSL in a new tab, or in the same tab where phones block new tabs. */
 export function bookmarklet(origin: string) {
-  return `javascript:(function(){${withOrigin(origin)}window.open(u.href,'_blank')})()`;
+  return `javascript:(function(){${withOrigin(origin)}if(!window.open(u.href,'_blank'))location.href=u.href})()`;
 }
 
 /** For the iPhone Shortcut: hands the TSL link back to the next step ("Open URLs"). */

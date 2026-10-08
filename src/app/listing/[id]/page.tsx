@@ -74,8 +74,8 @@ export default async function ListingPage({ params }: PageProps<"/listing/[id]">
       {item.notes && <p style={{ margin: 0 }}>{item.notes}</p>}
       {item.fetchError && (
         <div className="notice">
-          <b>{item.site} didn&apos;t share the details.</b> {item.fetchError} Add the title and price below so it shows properly in your
-          list.
+          <b>{item.site} didn&apos;t share the details.</b> {item.fetchError} To fill in the photo and price, open the listing in Safari,
+          tap Share, then <b>Save to TSL</b> (<Link href="/save">set it up</Link>). Or add the title and price below.
         </div>
       )}
       <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn">

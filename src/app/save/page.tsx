@@ -43,6 +43,29 @@ export default async function SaveSetupPage() {
       </section>
 
       <section className="stack">
+        <h2 className="src">On an Android phone (Chrome)</h2>
+        <CopyBox text={bookmarklet(origin)} />
+        <ol className="steps">
+          <li>Tap Copy above.</li>
+          <li>
+            Tap <b>⋮</b> at the top right, then the <b>☆</b> star. This bookmarks this page.
+          </li>
+          <li>
+            Tap <b>Edit</b> on the message that pops up (or tap <b>⋮</b>, then the star again). Change the name to <b>Save to TSL</b>.
+          </li>
+          <li>
+            Tap the URL box, delete everything in it, paste, then tap the back arrow to save.
+          </li>
+          <li>
+            Open a listing in Chrome. Tap the address bar, type <b>Save to TSL</b>, and tap the result with the star, not a Google search.
+          </li>
+        </ol>
+        <p className="hint">
+          If a listing opens in a pop-up window with an <b>✕</b> at the top left, tap <b>⋮</b> then <b>Open in Chrome</b> first.
+        </p>
+      </section>
+
+      <section className="stack">
         <h2 className="src">On an iPhone (Safari)</h2>
         <CopyBox text={shortcutScript(origin)} />
         <ol className="steps">
