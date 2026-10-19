@@ -142,6 +142,10 @@ export function explainDbError(err: unknown, url: string): DbSetupError {
   } else if (url.includes("…") || /%E2%80%A6/i.test(url) || url.includes("[") || url.includes("]")) {
     text =
       "The saved DATABASE_URL still has placeholder text in it (\"…\" or square brackets). Copy the Transaction pooler link from Supabase's Connect button and put only your password where [YOUR-PASSWORD] was.";
+  } else if (/tenant\/user .* not found/i.test(msg)) {
+    // Supabase's pooler answers like this when a free project has been paused after a week unused.
+    text =
+      "Supabase has paused the database because it wasn't used for a while (free plan). Go to supabase.com/dashboard, open the project, click Restore project, wait a few minutes for it to finish, then reload this page. Nothing needs changing in Vercel.";
   } else if (e?.code === "ENOTFOUND" || /getaddrinfo/.test(msg)) {
     text =
       "The database address couldn't be found. Use the Transaction pooler link from Supabase's Connect button (it ends in :6543/postgres), not the Direct connection one.";
