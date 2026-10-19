@@ -117,6 +117,8 @@ describe("explainDbError", () => {
     expect(auth.message).toMatch(/rejected the password/);
     expect(auth.target).toBe("postgres.abc @ aws-0-ap-northeast-2.pooler.supabase.com:6543");
     expect(explainDbError({ message: "Tenant or user not found" }, good).message).toMatch(/user name/);
+    const paused = { code: "ENOTFOUND", message: "(ENOTFOUND) tenant/user postgres.abc not found" };
+    expect(explainDbError(paused, good).message).toMatch(/Restore project/);
     expect(explainDbError({ message: "boom s3cretpw" }, good).message).not.toContain("s3cretpw");
     expect(explainDbError(new Error("x"), "not a link").message).toMatch(/isn't a valid link/);
   });
