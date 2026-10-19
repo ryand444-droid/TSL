@@ -16,3 +16,10 @@ export async function isSignedIn(cookieValue: string | undefined): Promise<boole
   if (!code) return true;
   return cookieValue === (await sessionToken(code));
 }
+
+/** Key for the iPhone "TSL from apps" Shortcut, which can't sign in with a cookie. Changes with the passcode. */
+export async function captureKey(): Promise<string> {
+  const code = passcode();
+  if (!code) return "open";
+  return (await sessionToken(`capture:${code}`)).slice(0, 24);
+}

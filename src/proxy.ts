@@ -10,6 +10,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the sign-in page and the files iOS needs to install the app.
-  matcher: ["/((?!login|_next/|manifest.webmanifest|icon|apple-icon|favicon.ico).*)"],
+  // Everything except the sign-in page, the Shortcut capture link (it checks its own key) and the files iOS needs to install the app.
+  matcher: ["/((?!login|api/capture|_next/|manifest.webmanifest|icon|apple-icon|favicon.ico).*)"],
 };
