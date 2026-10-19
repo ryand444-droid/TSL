@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { captureKey } from "@/lib/auth";
 import { BackIcon } from "@/components/icons";
 import { bookmarklet, shortcutScript } from "@/lib/capture-script";
 import { CopyBox } from "./CopyBox";
@@ -15,6 +16,7 @@ export default async function SaveSetupPage() {
   const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
   const origin = production ? `https://${production}` : `${proto}://${host}`;
   // React won't render javascript: links, so the bookmark is written as plain HTML.
+  const appsLink = `${origin}/api/capture?key=${await captureKey()}`;
   const bookmarkHtml = `<a class="btn ghost" href="javascript:${encodeURIComponent(bookmarklet(origin).slice("javascript:".length))}">＋ Save to TSL</a>`;
 
   return (
@@ -88,6 +90,42 @@ export default async function SaveSetupPage() {
           </li>
         </ol>
         <p className="hint">The listing opens in Safari, so sign in to TSL in Safari once as well.</p>
+      </section>
+      <section className="stack">
+        <h2 className="src">On an iPhone, from apps (Chrono24, Domain, carsales)</h2>
+        <p className="hint">A second Shortcut for apps, whose Share button only sends a link. It downloads the page on your phone and sends it to TSL.</p>
+        <CopyBox text={appsLink} />
+        <ol className="steps">
+          <li>Tap Copy above.</li>
+          <li>
+            Open <b>Shortcuts</b>, tap <b>+</b>, and call it <b>TSL from apps</b>. Tap <b>ⓘ</b>, turn on <b>Show in Share Sheet</b>, then Done.
+          </li>
+          <li>
+            Add <b>Get URLs from Input</b>.
+          </li>
+          <li>
+            Add <b>Get Contents of URL</b>. Leave it as it is.
+          </li>
+          <li>
+            Add another <b>Get Contents of URL</b>. Tap its blue <b>URL</b> and paste. Tap the <b>›</b> arrow to show more, then set{" "}
+            <b>Method</b> to <b>POST</b> and <b>Request Body</b> to <b>Form</b>.
+          </li>
+          <li>
+            Tap <b>Add new field</b>, choose <b>Text</b>. Type <b>url</b> as the key. Tap the value, then <b>Select Variable</b>, and tap{" "}
+            <b>URLs</b>.
+          </li>
+          <li>
+            Tap <b>Add new field</b> again, choose <b>File</b>. Type <b>html</b> as the key. Tap the value, then <b>Select Variable</b>, and
+            tap the first <b>Contents of URL</b>.
+          </li>
+          <li>
+            Add <b>Open URLs</b> at the bottom. Tap Done.
+          </li>
+          <li>
+            In the Chrono24 or Domain app, tap <b>Share</b> on a listing, then <b>TSL from apps</b>. The first time, tap <b>Allow</b>.
+          </li>
+        </ol>
+        <p className="hint">If a listing still comes through without a photo or price, that site blocked it. Open it in Safari and use Save to TSL there.</p>
       </section>
     </main>
   );
